@@ -1,8 +1,6 @@
 CGI::ASP::Lite
 
-Implementation of IIS $Request and $Response objects in non-IIS environment.
-
-Provides common API across both platforms.
+IIS Request/Response object implemenation for Apache
 
 You can write "ASP ready" CGI scripts under Apache. Making for future 
 porting to IIS almost seamless.
@@ -23,7 +21,7 @@ porting to IIS almost seamless.
 
 
 Ross Ferguson 
-29 Jan, 2001
+15 April, 2001
 
  
 

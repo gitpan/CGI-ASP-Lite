@@ -1,30 +1,33 @@
 #####################################################################################
 #
-# CGI::ASP::Lite - Implement IIS $Request $Response objects in non-IIS environment 
-#
+# CGI::ASP::Lite 
+#	Limited implementation of IIS Request/Response objects 
+#	for non-IIS environments 
 #
 # Author: Ross Ferguson (ross.ferguson@cibc.co.uk)
-# Revisions: 1.00
+# Revisions: 1.02
 #
 # Modhist: 
-# 24-jan-2001	Released
+# 15-apr-2001	1.02 Cookie support
+# 24-jan-2001	1.01 Released
 #
 #
 #####################################################################################
 
 package CGI::ASP::Lite;
-$VERSION = "1.00";
+$VERSION = "1.02";
 
 sub new {
 
 my $self = { 
   $ContentType = "text/html",
   $sent = false,
-  $query = {},
-  $env	 = {},
-  $form  = {}
-  }; 
-
+  $QueryString = {},
+  $ServerVariables = {},
+  $Form = {},
+  $ClientCertificate = {},
+  $Cookies = {}
+   }; 
 
 &parse($ENV{'QUERY_STRING'});
 
@@ -33,29 +36,34 @@ if($ENV{'REQUEST_METHOD'} eq "POST") {
     &parse($query_string,true);
 }
 
-while(($key,$value) = each %ENV) {
+while(my($key,$value) = each %ENV) {
   $value =~tr/+/ / ;
-  $value =~s/%([0-9a-fA-F]{2})/pack("c",hex($1))/ge;
-  $self{env}{$key} = $value;
+  $value =~s/%([0-9A-F]{2})/pack("c",hex($1))/gei;
+  $self{ServerVariables}{$key} = $value;
  }
-  
+
+foreach $cookie (split(/; /,$ENV{'HTTP_COOKIE'})) {
+  my($key,$value) = split(/=/,$cookie);
+  $self{Cookies}{$key} = $value;
+  }   
+
+bless $self, CGI::ASP::Lite;
+return($self);	
+}
+
 sub parse {
 
 foreach $arg (split(/&/,$_[0])) {
-  ($key,$value) = split(/=/,$arg);
+  my ($key,$value) = split(/=/,$arg);
   $value =~tr/+/ / ;
-  $value =~s/%([0-9a-fA-F]{2})/pack("c",hex($1))/ge;
+  $value =~s/%([0-9A-F]{2})/pack("c",hex($1))/gei;
   
   if($_[1]) {
-     $self{form}{$key} = $value;
+     $self{Form}{$key} = $value;
   } else {
-     $self{query}{$key} = $value;
+     $self{QueryString}{$key} = $value;
      }
   } 
-}
-
-bless $self, 'CGI::ASP::Lite';
-return($self);	
 }
 
 
@@ -104,8 +112,8 @@ sub QueryString {
 
 my $self = shift;
 my $ret = { 
-  'Item'  => $self{query}{@_[0]}, 
-  'Count' => scalar keys %{ $self{query} }
+  'Item'  => $self{QueryString}{@_[0]}, 
+  'Count' => scalar keys %{ $self{QueryString} }
 };
 
 bless $ret, CGI::ASP::Lite;
@@ -120,9 +128,10 @@ return($ret);
 sub ServerVariables { 
 
 my $self = shift;
+
 my $ret = { 
-  'Item'  => $self{env}{@_[0]},
-  'Count' => scalar keys %{ $self{env} }
+  'Item'  => $self{ServerVariables}{@_[0]},
+  'Count' => scalar keys %{ $self{ServerVariables} }
 }; 
 
 bless $ret, CGI::ASP::Lite;
@@ -137,9 +146,28 @@ return($ret);
 sub Form { 
 
 my $self = shift;
+
 my $ret = { 
-   'Item'  => $self{form}{@_[0]},
-   'Count' => scalar keys %{ $self{form} }
+   'Item'  => $self{Form}{@_[0]},
+   'Count' => scalar keys %{ $self{Form} }
+};
+
+bless $ret, CGI::ASP::Lite;
+return($ret);	
+}
+
+
+####
+####
+####
+
+sub Cookies { 
+
+my $self = shift;
+
+my $ret = { 
+   'Item'  => $self{Cookies}{@_[0]},
+   'Count' => scalar keys %{ $self{Cookies} }
 };
 
 bless $ret, CGI::ASP::Lite;
@@ -155,7 +183,6 @@ sub ContentType {
 
 my $self = shift;
 
-print "--", $self{ContentType}, "--";
 return($self->{ContentType});
 }
 
@@ -184,7 +211,7 @@ $Response = $Request;
 
 =head1 NAME
 
-CGI::ASP::Lite - a Module for ASP emulation 
+CGI::ASP::Lite - IIS Request/Response object implemenation for Apache
 
 =head1 SYNOPSIS
 
@@ -202,5 +229,6 @@ CGI::ASP::Lite - a Module for ASP emulation
 
 =head1 DESCRIPTION
 
-Implement IIS $Request $Response objects in non-IIS environment
-Provides common CGI API across both platforms
+Limited implementation of IIS Request/Response objects 
+for non-IIS environments. Provides common CGI API.
+
