@@ -4,10 +4,12 @@
 #	Limited implementation of IIS Request/Response objects 
 #	for non-IIS environments 
 #
-# Author: Ross Ferguson (ross.ferguson@cibc.co.uk)
-# Revisions: 1.02
+# Author: Ross Ferguson <ross.ferguson@cibc.co.uk>
+# Revisions: 1.03
 #
 # Modhist: 
+# 07-may-2001	1.03 char conversion on cookies  %21 -> ! 
+#		     test script added
 # 15-apr-2001	1.02 Cookie support
 # 24-jan-2001	1.01 Released
 #
@@ -15,7 +17,7 @@
 #####################################################################################
 
 package CGI::ASP::Lite;
-$VERSION = "1.02";
+$VERSION = "1.03";
 
 sub new {
 
@@ -44,6 +46,8 @@ while(my($key,$value) = each %ENV) {
 
 foreach $cookie (split(/; /,$ENV{'HTTP_COOKIE'})) {
   my($key,$value) = split(/=/,$cookie);
+  $value =~tr/+/ / ;
+  $value =~s/%([0-9A-F]{2})/pack("c",hex($1))/gei;
   $self{Cookies}{$key} = $value;
   }   
 
@@ -211,7 +215,10 @@ $Response = $Request;
 
 =head1 NAME
 
-CGI::ASP::Lite - IIS Request/Response object implemenation for Apache
+CGI::ASP::Lite - Limited IIS Request/Response object implemenation for Apache
+
+You can write "ASP ready" CGI scripts under Apache. Making for future 
+porting to IIS almost seamless.
 
 =head1 SYNOPSIS
 

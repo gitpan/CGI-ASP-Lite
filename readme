@@ -1,27 +1,24 @@
-CGI::ASP::Lite
+NAME
+    CGI::ASP::Lite - Limited IIS Request/Response object implemenation for
+    Apache
 
-IIS Request/Response object implemenation for Apache
+    You can write "ASP ready" CGI scripts under Apache. Making for future
+    porting to IIS almost seamless.
 
-You can write "ASP ready" CGI scripts under Apache. Making for future 
-porting to IIS almost seamless.
+SYNOPSIS
+            use CGI::ASP::Lite; 
 
+            $Response->Write("hello<br>\n");
 
-
-    use CGI::ASP::Lite; 
-
-    $IE=true if $Request->ServerVariables("HTTP_USER_AGENT")->Item =~/MSIE/;
-
-    $Response->Write("hello<br>\n");
+            $IE=true if $Request->ServerVariables("HTTP_USER_AGENT")->Item =~/MSIE/;
  
-    $Response->Write("IE=$IE<br>\n");
+            $Response->Write("IE=$IE<br>\n");
 
-    $Response->Write("id=" . $Request->QueryString("id")->Item . "<br>\n");
+            $id    = $Request->QueryString("id")->Item;
 
+            $name  = $Request->Form("name")->Item;
 
-
-
-Ross Ferguson 
-15 April, 2001
-
- 
+DESCRIPTION
+    Limited implementation of IIS Request/Response objects for non-IIS
+    environments. Provides common CGI API.
 
